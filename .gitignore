@@ -6,3 +6,6 @@ dist-ssr/
 .playwright-mcp/
 scratch_crop.png
 gsap_homepage_bundle.js
+
+.vercel
+.env*
