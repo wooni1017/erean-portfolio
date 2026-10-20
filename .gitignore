@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+.playwright-mcp/
+scratch_crop.png
+gsap_homepage_bundle.js

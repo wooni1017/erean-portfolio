@@ -1,0 +1,542 @@
+:root {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  
+  /* Google Sans prioritized */
+  --font-sans: 'Google Sans', 'Google Sans Display', 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  /* Fluid symmetric padding/offset for Menu, More, and Top buttons across all screen sizes */
+  --menu-offset: clamp(16px, 2.5vw, 40px);
+  --btn-font-size: clamp(12px, 1.05vw, 15px);
+  --btn-padding-y: clamp(7px, 0.75vw, 11px);
+  --btn-padding-x: clamp(14px, 1.6vw, 24px);
+
+  --header-height: calc(var(--menu-offset) * 2 + 36px);
+  
+  /* Proportional fluid typography scaling with both width and height */
+  --title-size: clamp(52px, min(16vw, 22vh), 220px);
+  --editorial-size: clamp(36px, min(9.5vw, 15vh), 140px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ================= HIDE SCROLLBAR GLOBALLY ================= */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  background-color: var(--color-black);
+  font-family: var(--font-sans);
+  user-select: none;
+}
+
+/* ================= 3. EQUAL TOP & LEFT MENU BUTTON ================= */
+.fixed-header {
+  position: fixed;
+  top: var(--menu-offset);
+  left: var(--menu-offset);
+  z-index: 3000;
+  pointer-events: none;
+}
+
+/* ================= 4. ADAPTIVE MENU BUTTON COLOR ================= */
+.menu-toggle-btn {
+  pointer-events: auto;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: var(--btn-font-size);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark Background: Crisp Pure White Button */
+.menu-toggle-btn.theme-dark-bg {
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+}
+.menu-toggle-btn.theme-dark-bg:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.06);
+}
+
+/* Light Background: Crisp Pure Black Button */
+.menu-toggle-btn.theme-light-bg {
+  color: #000000;
+  border: 1.5px solid #000000;
+}
+.menu-toggle-btn.theme-light-bg:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  transform: scale(1.06);
+}
+
+.menu-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.btn-text {
+  display: block;
+  line-height: 1;
+}
+
+/* ================= FULLSCREEN MENU OVERLAY ================= */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-black);
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-overlay.is-open {
+  pointer-events: auto;
+}
+
+.menu-header-spacer {
+  width: 100%;
+  height: var(--header-height);
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.menu-nav {
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-list {
+  list-style: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  height: var(--row-height);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 clamp(28px, 6vw, 96px);
+  text-decoration: none;
+  color: var(--color-white);
+  background: transparent;
+  transition: background-color 0.25s ease, padding-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  padding-left: clamp(36px, 7.5vw, 120px);
+}
+
+.menu-title {
+  font-family: var(--font-sans);
+  font-size: clamp(32px, 5.5vw, 84px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  position: relative;
+  z-index: 2;
+}
+
+/* ================= FLOATING PREVIEW CARD ================= */
+.cursor-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2200;
+  opacity: 0;
+  will-change: transform, opacity;
+  transform: translate3d(-9999px, -9999px, 0);
+}
+
+.preview-card {
+  width: clamp(280px, 30vw, 460px);
+  height: var(--row-height);
+  background-color: #1e1e1e;
+  border: none !important;
+  outline: none !important;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 24px 28px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.preview-index {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ================= HORIZONTAL VIEWPORT & TRACK ================= */
+.page-viewport {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.horizontal-track {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: max-content;
+  will-change: transform;
+}
+
+/* ================= SECTION COMMON ================= */
+.section {
+  width: 100vw;
+  height: 100vh;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+}
+
+.section-dark {
+  background-color: var(--color-black);
+  color: var(--color-white);
+}
+
+.section-light {
+  background-color: var(--color-white);
+  color: var(--color-black);
+}
+
+/* ================= VERTICAL 2-SLIDE EXTENSION SCROLLER ================= */
+.section-vertical-scroller {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: hidden; /* Scroll position driven dynamically via GSAP & wheel sync */
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.section-vertical-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.section-slide {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(20px, 4vw, 60px);
+  box-sizing: border-box;
+}
+
+/* ================= MORE & TOP BUTTONS (Same pill shape as Menu) ================= */
+.more-btn,
+.back-top-btn {
+  position: absolute;
+  right: var(--menu-offset);
+  bottom: var(--menu-offset);
+  z-index: 100;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 9999px;
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 0.6vw, 10px);
+  font-family: var(--font-sans);
+  font-size: var(--btn-font-size);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.section-dark .more-btn,
+.section-dark .back-top-btn {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.section-dark .more-btn:hover,
+.section-dark .back-top-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: #ffffff;
+  transform: translateY(2px);
+}
+
+.section-light .more-btn,
+.section-light .back-top-btn {
+  color: #000000;
+  border-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.section-light .more-btn:hover,
+.section-light .back-top-btn:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-color: #000000;
+  transform: translateY(2px);
+}
+
+.more-chevron {
+  display: inline-block;
+  width: clamp(10px, 0.9vw, 13px);
+  height: clamp(10px, 0.9vw, 13px);
+  transition: transform 0.25s ease;
+}
+
+/* ================= 1. SECTION 1: ARROW -> EREAN -> ARROW (완전 중앙 정렬) ================= */
+.hero-sequence-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: min(94vw, 1600px);
+  margin: 0 auto;
+  gap: clamp(12px, 2.8vw, 48px);
+}
+
+.arrow-wrap {
+  width: clamp(70px, 20vw, 360px);
+  height: clamp(32px, 8vw, 130px);
+  display: flex;
+  align-items: center;
+  color: var(--color-white);
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.arrow-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+.arrow-stem {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+}
+
+.arrow-head {
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+}
+
+/* EREAN Title: 유연한 반응형 스케일 및 줄바꿈 방지 */
+.hero-title {
+  font-family: var(--font-sans);
+  font-size: var(--title-size);
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: currentColor;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.char-wrap {
+  display: inline-flex;
+  align-items: center;
+  perspective: 800px;
+  transform-style: preserve-3d;
+  margin: 0 clamp(1px, 0.2vw, 4px);
+  transform: none;
+}
+
+.char {
+  display: inline-block;
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* ================= EXTENDED SUB SLIDE PLACEHOLDER ([1], [2], [3], [4]) ================= */
+.sub-placeholder-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.sub-placeholder-num {
+  font-family: var(--font-sans);
+  font-size: clamp(20px, 2.5vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  opacity: 0.35;
+}
+
+/* ================= SECTION 2: CHAR-BY-CHAR RISING EDITORIAL (이미지 2 맞춤 완전 중앙 락업) ================= */
+.split-editorial-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 92vw;
+  margin: 0 auto;
+}
+
+.split-row {
+  display: flex;
+  align-items: baseline; /* 텍스트 및 마침표 베이스라인 정렬 */
+  font-family: var(--font-sans);
+  font-size: var(--editorial-size);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  color: var(--color-black);
+  white-space: nowrap;
+}
+
+.split-row-2 {
+  margin-top: clamp(6px, 1.5vh, 22px);
+}
+
+/* Individual character clipping mask for the rise up animation */
+.split-char-parent {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: baseline;
+  line-height: 1.1;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+.split-char {
+  display: inline-block;
+  will-change: transform, opacity;
+  transform: none;
+  opacity: 1;
+}
+
+.split-space {
+  display: inline-block;
+  width: 0.28em;
+}
+
+/* Solid Black Boxes: 이미지 2의 사진/그래픽 사각형 비율과 베이스라인 정렬 */
+.inline-box-mask {
+  overflow: hidden;
+  display: inline-flex;
+  border-radius: clamp(3px, 0.4vw, 6px);
+  height: 0.74em;
+  vertical-align: baseline;
+  transform: translateY(0.04em);
+  flex-shrink: 0;
+}
+
+#splitRow1 .inline-box-mask {
+  width: clamp(95px, 1.45em, 320px);
+  margin: 0 clamp(8px, 1.4vw, 24px);
+}
+
+#splitRow2 .inline-box-mask {
+  width: clamp(155px, 2.5em, 540px);
+  margin: 0 clamp(8px, 1.4vw, 24px);
+  margin-right: clamp(4px, 0.6vw, 10px);
+}
+
+.inline-solid-box {
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  border-radius: inherit;
+  display: block;
+  will-change: transform, opacity;
+  transform: none;
+  opacity: 1;
+}
+
+.dot-phrase {
+  vertical-align: baseline;
+  margin-left: 0;
+}
+
+/* Sub-sections 3 and 4 */
+.minimal-section-content {
+  text-align: center;
+}
+
+.sub-hero-title {
+  font-family: var(--font-sans);
+  font-size: clamp(40px, min(10vw, 15vh), 150px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: currentColor;
+}
+
+/* Viewport orientation & height adjustments */
+@media (max-height: 560px) {
+  :root {
+    --menu-offset: 14px;
+    --title-size: clamp(36px, 14vh, 90px);
+    --editorial-size: clamp(24px, 9vh, 60px);
+  }
+
+  .arrow-wrap {
+    height: 32px;
+  }
+}

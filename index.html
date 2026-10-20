@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EREAN</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Fixed Header with "Menu" Text Button (Equal top & left offset) -->
+  <header class="fixed-header">
+    <button class="menu-toggle-btn theme-dark-bg" id="menuToggleBtn" aria-label="Toggle Menu">
+      <span class="btn-text" id="btnText">Menu</span>
+    </button>
+  </header>
+
+  <!-- Fullscreen Menu Overlay -->
+  <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+    <div class="menu-header-spacer"></div>
+
+    <nav class="menu-nav">
+      <ul class="menu-list">
+        <li class="menu-item">
+          <a href="#" class="menu-btn" data-index="1">
+            <span class="menu-title">Works</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" class="menu-btn" data-index="2">
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" class="menu-btn" data-index="3">
+            <span class="menu-title">Archive</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" class="menu-btn" data-index="4">
+            <span class="menu-title">Contact</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Floating Mouse Lag Follower Preview Card -->
+  <div class="cursor-preview" id="cursorPreview" aria-hidden="true">
+    <div class="preview-card" id="previewCard">
+      <span class="preview-index" id="previewIndex">[1]</span>
+    </div>
+  </div>
+
+  <!-- Pinned Viewport Container -->
+  <main class="page-viewport" id="viewport">
+    <div class="horizontal-track" id="track">
+
+      <!-- ================= SECTION 1: ARROW -> EREAN -> ARROW (Dark) ================= -->
+      <section class="section section-dark section-hero" data-theme="dark" data-index="0">
+        <div class="section-vertical-scroller">
+          <!-- Slide 1: Main Hero -->
+          <div class="section-slide section-slide-main">
+            <div class="hero-sequence-container">
+              <!-- Left Arrow SVG -->
+              <div class="arrow-wrap arrow-left" id="arrowLeftWrap">
+                <svg class="arrow-svg" viewBox="0 0 320 120" fill="none">
+                  <path class="arrow-stem" d="M 0 60 L 305 60" vector-effect="non-scaling-stroke" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path class="arrow-head" d="M 252 10 L 308 60 L 252 110" vector-effect="non-scaling-stroke" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+
+              <!-- EREAN Massive Kinetic Characters (모든 글자 수평 일치) -->
+              <h1 class="hero-title" aria-label="EREAN">
+                <span class="char-wrap"><span class="char char-0">E</span></span>
+                <span class="char-wrap"><span class="char char-1">R</span></span>
+                <span class="char-wrap"><span class="char char-2">E</span></span>
+                <span class="char-wrap"><span class="char char-3">A</span></span>
+                <span class="char-wrap"><span class="char char-4">N</span></span>
+              </h1>
+
+              <!-- Right Arrow SVG -->
+              <div class="arrow-wrap arrow-right" id="arrowRightWrap">
+                <svg class="arrow-svg" viewBox="0 0 320 120" fill="none">
+                  <path class="arrow-stem" d="M 0 60 L 305 60" vector-effect="non-scaling-stroke" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path class="arrow-head" d="M 252 10 L 308 60 L 252 110" vector-effect="non-scaling-stroke" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- More Button (Same pill shape as Menu) -->
+            <button class="more-btn" data-index="0" aria-label="More details about Section 1">
+              <span class="btn-text">More</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Slide 2: Extended Sub Section (아래로 1섹션 높이, [1] 미니멀 플레이스홀더) -->
+          <div class="section-slide section-slide-sub section-dark" data-theme="dark">
+            <div class="sub-placeholder-card">
+              <span class="sub-placeholder-num">[1]</span>
+            </div>
+
+            <!-- Top Button (Back to main slide) -->
+            <button class="back-top-btn" data-index="0" aria-label="Back to top">
+              <span class="btn-text">Top</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2: CHAR-BY-CHAR RISING EDITORIAL (Light) ================= -->
+      <section class="section section-light section-designer" data-theme="light" data-index="1">
+        <div class="section-vertical-scroller">
+          <!-- Slide 1: Main Editorial -->
+          <div class="section-slide section-slide-main">
+            <div class="split-editorial-container">
+              <!-- Row 1: I'm a [Box 1] Graphic -->
+              <div class="split-row split-row-1" id="splitRow1">
+                <span class="text-phrase">I'm a</span>
+                <span class="inline-box-mask">
+                  <span class="inline-solid-box box-1"></span>
+                </span>
+                <span class="text-phrase">Graphic</span>
+              </div>
+
+              <!-- Row 2: Designer [Box 2] . -->
+              <div class="split-row split-row-2" id="splitRow2">
+                <span class="text-phrase">Designer</span>
+                <span class="inline-box-mask">
+                  <span class="inline-solid-box box-2"></span>
+                </span>
+                <span class="text-phrase dot-phrase">.</span>
+              </div>
+            </div>
+
+            <!-- More Button -->
+            <button class="more-btn" data-index="1" aria-label="More details about Designer">
+              <span class="btn-text">More</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Slide 2: Extended Sub Section ([2] 미니멀 플레이스홀더) -->
+          <div class="section-slide section-slide-sub section-light" data-theme="light">
+            <div class="sub-placeholder-card">
+              <span class="sub-placeholder-num">[2]</span>
+            </div>
+
+            <button class="back-top-btn" data-index="1" aria-label="Back to top">
+              <span class="btn-text">Top</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 3: ARCHIVE (Dark) ================= -->
+      <section class="section section-dark" data-theme="dark" data-index="2">
+        <div class="section-vertical-scroller">
+          <!-- Slide 1: Main Archive Title -->
+          <div class="section-slide section-slide-main">
+            <div class="minimal-section-content">
+              <h2 class="sub-hero-title">Archive</h2>
+            </div>
+
+            <!-- More Button -->
+            <button class="more-btn" data-index="2" aria-label="More details about Archive">
+              <span class="btn-text">More</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Slide 2: Extended Sub Section ([3] 미니멀 플레이스홀더) -->
+          <div class="section-slide section-slide-sub section-dark" data-theme="dark">
+            <div class="sub-placeholder-card">
+              <span class="sub-placeholder-num">[3]</span>
+            </div>
+
+            <button class="back-top-btn" data-index="2" aria-label="Back to top">
+              <span class="btn-text">Top</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4: CONTACT (Light) ================= -->
+      <section class="section section-light" data-theme="light" data-index="3">
+        <div class="section-vertical-scroller">
+          <!-- Slide 1: Main Contact Title -->
+          <div class="section-slide section-slide-main">
+            <div class="minimal-section-content">
+              <h2 class="sub-hero-title">Contact</h2>
+            </div>
+
+            <!-- More Button -->
+            <button class="more-btn" data-index="3" aria-label="More details about Contact">
+              <span class="btn-text">More</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Slide 2: Extended Sub Section ([4] 미니멀 플레이스홀더) -->
+          <div class="section-slide section-slide-sub section-light" data-theme="light">
+            <div class="sub-placeholder-card">
+              <span class="sub-placeholder-num">[4]</span>
+            </div>
+
+            <button class="back-top-btn" data-index="3" aria-label="Back to top">
+              <span class="btn-text">Top</span>
+              <svg class="more-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
