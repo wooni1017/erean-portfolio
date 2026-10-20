@@ -12,12 +12,42 @@ const cursorPreview = document.getElementById('cursorPreview');
 const previewCard = document.getElementById('previewCard');
 const previewIndex = document.getElementById('previewIndex');
 const menuButtons = document.querySelectorAll('.menu-btn');
+const sections = Array.from(document.querySelectorAll('.section'));
 
-/* ================= 1. HORIZONTAL SCROLL & ADAPTIVE MENU COLOR ================= */
+/* ================= 1. HORIZONTAL SCROLL & HIGH-PERFORMANCE MENU COLOR ================= */
 let horizontalTween;
+
+function updateMenuButtonColor() {
+  if (!menuToggleBtn) return;
+
+  let currentTheme = 'dark';
+
+  if (activeScroller && activeScroller.scrollTop > window.innerHeight * 0.45) {
+    const subSlide = activeScroller.querySelector('.section-slide-sub');
+    currentTheme = subSlide ? (subSlide.getAttribute('data-theme') || 'dark') : 'dark';
+  } else {
+    const trackX = Math.abs(gsap.getProperty(track, 'x') || 0);
+    const secWidth = window.innerWidth || 1;
+    const probeOffset = 60;
+    const activeIdx = Math.min(sections.length - 1, Math.max(0, Math.floor((trackX + probeOffset) / secWidth)));
+    const activeSection = sections[activeIdx];
+    if (activeSection) {
+      currentTheme = activeSection.getAttribute('data-theme') || 'dark';
+    }
+  }
+
+  if (currentTheme === 'light') {
+    menuToggleBtn.classList.add('theme-light-bg');
+    menuToggleBtn.classList.remove('theme-dark-bg');
+  } else {
+    menuToggleBtn.classList.add('theme-dark-bg');
+    menuToggleBtn.classList.remove('theme-light-bg');
+  }
+}
 
 function initHorizontalScroll() {
   const getScrollLength = () => track.scrollWidth - window.innerWidth;
+  const isTouch = ScrollTrigger.isTouch;
 
   horizontalTween = gsap.to(track, {
     x: () => -getScrollLength(),
@@ -27,7 +57,7 @@ function initHorizontalScroll() {
       start: 'top top',
       end: () => `+=${getScrollLength()}`,
       pin: true,
-      scrub: 0.8,
+      scrub: isTouch ? 0.15 : 0.8, // Snappy on mobile touch, buttery smooth on desktop
       invalidateOnRefresh: true,
       onUpdate: () => {
         updateMenuButtonColor();
@@ -47,34 +77,6 @@ function initHorizontalScroll() {
   updateMenuButtonColor();
 }
 
-/* ================= 4. ADAPTIVE MENU BUTTON COLOR DETECTION ================= */
-function updateMenuButtonColor() {
-  if (!menuToggleBtn) return;
-
-  const btnRect = menuToggleBtn.getBoundingClientRect();
-  const probeX = btnRect.left + btnRect.width / 2;
-  const probeY = btnRect.top + btnRect.height / 2;
-
-  // Temporarily disable pointer events to probe underlying section
-  menuToggleBtn.style.pointerEvents = 'none';
-  const underEl = document.elementFromPoint(probeX, probeY);
-  menuToggleBtn.style.pointerEvents = 'auto';
-
-  if (underEl) {
-    const section = underEl.closest('.section');
-    if (section) {
-      const theme = section.getAttribute('data-theme');
-      if (theme === 'light') {
-        menuToggleBtn.classList.add('theme-light-bg');
-        menuToggleBtn.classList.remove('theme-dark-bg');
-      } else {
-        menuToggleBtn.classList.add('theme-dark-bg');
-        menuToggleBtn.classList.remove('theme-light-bg');
-      }
-    }
-  }
-}
-
 /* ================= 2. FULLSCREEN MENU TOGGLE ================= */
 let isMenuOpen = false;
 
@@ -87,7 +89,6 @@ function toggleMenu() {
   }
 
   if (isMenuOpen) {
-    // When menu is open, the background is dark, so button is white
     menuToggleBtn.classList.add('theme-dark-bg');
     menuToggleBtn.classList.remove('theme-light-bg');
 
@@ -104,7 +105,7 @@ function toggleMenu() {
     );
   } else {
     isHovering = false;
-    gsap.to(cursorPreview, { opacity: 0, duration: 0.2 });
+    if (cursorPreview) gsap.to(cursorPreview, { opacity: 0, duration: 0.2 });
     gsap.to(menuOverlay, {
       autoAlpha: 0,
       duration: 0.3,
@@ -118,92 +119,96 @@ if (menuToggleBtn) {
   menuToggleBtn.addEventListener('click', toggleMenu);
 }
 
-/* ================= 3. GSAP MOUSE LAG FOLLOWER PREVIEW ================= */
+/* ================= 3. DESKTOP MOUSE LAG FOLLOWER PREVIEW ================= */
 let targetX = -9999;
 let targetY = -9999;
 let currentX = -9999;
 let currentY = -9999;
 let isHovering = false;
 
-gsap.ticker.add(() => {
-  if (currentX === -9999 && targetX !== -9999) {
-    currentX = targetX;
-    currentY = targetY;
-  }
-  currentX += (targetX - currentX) * 0.12;
-  currentY += (targetY - currentY) * 0.12;
+if (!ScrollTrigger.isTouch && cursorPreview) {
+  gsap.ticker.add(() => {
+    if (!isMenuOpen || !isHovering) return;
 
-  gsap.set(cursorPreview, {
-    x: currentX,
-    y: currentY,
-  });
-});
-
-menuButtons.forEach((btn) => {
-  btn.addEventListener('mouseenter', (e) => {
-    isHovering = true;
-    const idx = btn.getAttribute('data-index') || '1';
-    if (previewIndex) {
-      previewIndex.textContent = `[${idx}]`;
-    }
-
-    const btnRect = btn.getBoundingClientRect();
-    const cardWidth = previewCard ? previewCard.offsetWidth : 360;
-
-    targetY = btnRect.top;
-    targetX = Math.min(e.clientX + 40, window.innerWidth - cardWidth - 20);
-
-    if (currentX < -1000) {
+    if (currentX === -9999 && targetX !== -9999) {
       currentX = targetX;
       currentY = targetY;
-      gsap.set(cursorPreview, { x: currentX, y: currentY });
     }
+    currentX += (targetX - currentX) * 0.12;
+    currentY += (targetY - currentY) * 0.12;
 
-    gsap.killTweensOf(cursorPreview);
-    gsap.to(cursorPreview, {
-      opacity: 1,
-      duration: 0.25,
-      ease: 'power2.out',
+    gsap.set(cursorPreview, {
+      x: currentX,
+      y: currentY,
     });
   });
 
-  btn.addEventListener('mousemove', (e) => {
-    const btnRect = btn.getBoundingClientRect();
-    const cardWidth = previewCard ? previewCard.offsetWidth : 360;
+  menuButtons.forEach((btn) => {
+    btn.addEventListener('mouseenter', (e) => {
+      isHovering = true;
+      const idx = btn.getAttribute('data-index') || '1';
+      if (previewIndex) {
+        previewIndex.textContent = `[${idx}]`;
+      }
 
-    targetY = btnRect.top;
-    targetX = Math.min(e.clientX + 40, window.innerWidth - cardWidth - 20);
-  });
+      const btnRect = btn.getBoundingClientRect();
+      const cardWidth = previewCard ? previewCard.offsetWidth : 360;
 
-  btn.addEventListener('mouseleave', () => {
-    isHovering = false;
-    gsap.killTweensOf(cursorPreview);
-    gsap.to(cursorPreview, {
-      opacity: 0,
-      duration: 0.2,
-      ease: 'power2.in',
+      targetY = btnRect.top;
+      targetX = Math.min(e.clientX + 40, window.innerWidth - cardWidth - 20);
+
+      if (currentX < -1000) {
+        currentX = targetX;
+        currentY = targetY;
+        gsap.set(cursorPreview, { x: currentX, y: currentY });
+      }
+
+      gsap.killTweensOf(cursorPreview);
+      gsap.to(cursorPreview, {
+        opacity: 1,
+        duration: 0.25,
+        ease: 'power2.out',
+      });
+    });
+
+    btn.addEventListener('mousemove', (e) => {
+      const btnRect = btn.getBoundingClientRect();
+      const cardWidth = previewCard ? previewCard.offsetWidth : 360;
+
+      targetY = btnRect.top;
+      targetX = Math.min(e.clientX + 40, window.innerWidth - cardWidth - 20);
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      isHovering = false;
+      gsap.killTweensOf(cursorPreview);
+      gsap.to(cursorPreview, {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in',
+      });
+    });
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
     });
   });
+}
 
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-  });
-});
-
-/* ================= 1. SECTION 1: ARROW -> EREAN -> ARROW (이미지 1 맞춤) =================
- * 왼쪽 화살표 줄기/촉 드로잉 ➔ E, R, E, A, N 순차 격발 ➔ 오른쪽 화살표 드로잉 ➔ 무한 루프
- */
+/* ================= 4. SECTION 1: ARROW -> EREAN -> ARROW (IMAGE 1 SPEC) ================= */
 function initSection1HeroSequence() {
   const leftStem = document.querySelector('#arrowLeftWrap .arrow-stem');
   const leftHead = document.querySelector('#arrowLeftWrap .arrow-head');
   const rightStem = document.querySelector('#arrowRightWrap .arrow-stem');
   const rightHead = document.querySelector('#arrowRightWrap .arrow-head');
 
-  const c0 = document.querySelector('.hero-sequence-container .char-0'); // E
-  const c1 = document.querySelector('.hero-sequence-container .char-1'); // R
-  const c2 = document.querySelector('.hero-sequence-container .char-2'); // E
-  const c3 = document.querySelector('.hero-sequence-container .char-3'); // A
-  const c4 = document.querySelector('.hero-sequence-container .char-4'); // N
+  const c0 = document.querySelector('.hero-sequence-container .char-0');
+  const c1 = document.querySelector('.hero-sequence-container .char-1');
+  const c2 = document.querySelector('.hero-sequence-container .char-2');
+  const c3 = document.querySelector('.hero-sequence-container .char-3');
+  const c4 = document.querySelector('.hero-sequence-container .char-4');
+
+  if (!leftStem || !c0) return;
 
   gsap.set(c0, { transformOrigin: 'center bottom' });
   gsap.set(c1, { transformOrigin: 'center center', transformStyle: 'preserve-3d' });
@@ -256,31 +261,36 @@ function initSection1HeroSequence() {
   masterHeroSeq
     .set([leftStem, rightStem], { strokeDashoffset: 400, opacity: 1 })
     .set([leftHead, rightHead], { strokeDashoffset: 250, opacity: 1 })
-    // 1. 왼쪽 화살표 줄기/촉 드로잉
     .to(leftStem, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut' })
     .to(leftHead, { strokeDashoffset: 0, duration: 0.25, ease: 'power2.out' }, '-=0.1')
-    // 2. 글자 순차 격발 (E -> R -> E -> A -> N)
     .addLabel('chars')
     .add(createChar0Tween(), 'chars+=0.05')
     .add(createChar1Tween(), 'chars+=0.25')
     .add(createChar2Tween(), 'chars+=0.45')
     .add(createChar3Tween(), 'chars+=0.65')
     .add(createChar4Tween(), 'chars+=0.85')
-    // 3. 오른쪽 화살표 드로잉 (줄기 -> 촉)
     .to(rightStem, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut' }, 'chars+=1.1')
     .to(rightHead, { strokeDashoffset: 0, duration: 0.25, ease: 'power2.out' }, '-=0.1')
-    // 4. 페이드아웃 후 무한 루프
     .to([leftStem, leftHead, rightStem, rightHead], { opacity: 0, duration: 0.35, ease: 'power2.in' }, '+=0.4');
+
+  const heroSection = document.querySelector('.section-hero');
+  if (heroSection && horizontalTween) {
+    ScrollTrigger.create({
+      trigger: heroSection,
+      containerAnimation: horizontalTween,
+      start: 'left right',
+      end: 'right left',
+      onLeave: () => masterHeroSeq.pause(),
+      onEnterBack: () => masterHeroSeq.resume(),
+    });
+  }
 }
 
-/* ================= 2. SECTION 2: CHAR-BY-CHAR RISING EDITORIAL (이미지 2 맞춤) =================
- * Web search 검증 GSAP 문자 단위 마스킹 솟구침 패턴 (Character by character rising wave)
- */
+/* ================= 5. SECTION 2: CHAR-BY-CHAR RISING EDITORIAL (IMAGE 2 SPEC) ================= */
 function initSection2CharRiseEditorial() {
   const sectionDesigner = document.querySelector('.section-designer');
   if (!sectionDesigner) return;
 
-  // 글자들을 문자 단위로 자동 분할하여 클리핑 마스크 생성
   const phrases = sectionDesigner.querySelectorAll('.text-phrase');
   phrases.forEach((phrase) => {
     const text = phrase.textContent.trim();
@@ -296,7 +306,6 @@ function initSection2CharRiseEditorial() {
     phrase.innerHTML = html;
   });
 
-  // 모든 솟구침 대상 (순차 순서: "I'm a" -> [Box 1] -> "Graphic" -> "Designer" -> [Box 2] -> ".")
   const r1p1 = document.querySelector('#splitRow1 > .text-phrase:first-child');
   const box1 = document.querySelector('#splitRow1 .inline-solid-box');
   const r1p2 = document.querySelector('#splitRow1 > .text-phrase:last-child');
@@ -319,7 +328,7 @@ function initSection2CharRiseEditorial() {
       yPercent: 120,
       opacity: 0,
       duration: 0.75,
-      stagger: 0.035, // 글자가 하나씩 파도처럼 차례대로 솟구치는 GSAP 스태거
+      stagger: 0.035,
       ease: 'power4.out',
       scrollTrigger: {
         trigger: sectionDesigner,
@@ -332,48 +341,42 @@ function initSection2CharRiseEditorial() {
   }
 }
 
-/* ================= 3. DUAL-AXIS SCROLL (HORIZONTAL + BUTTERY SMOOTH VERTICAL EXTENSION) =================
- * 각 가로 섹션의 'More' 버튼을 누르면 1섹션 높이(100vh)만큼 아래로 부드럽게 자동 스크롤.
- * 이후 상하(위아래) 휠 스크롤 시 GSAP 기반 부드러운 감속/관성(Smooth Scroll) 적용.
- * 원래 섹션(위쪽)까지 스크롤을 올리면 가로 스크롤로 자연스럽게 복귀.
- */
+/* ================= 6. DUAL-AXIS SCROLL & ROBUST MOBILE TOUCH HANDLER ================= */
 let activeScroller = null;
 let targetVerticalY = 0;
 let currentVerticalTween = null;
 
+function smoothVerticalScrollTo(scroller, targetY, duration = 0.55, onDone = null) {
+  const maxScroll = window.innerHeight;
+  targetVerticalY = Math.max(0, Math.min(maxScroll, targetY));
+
+  if (currentVerticalTween) {
+    currentVerticalTween.kill();
+  }
+
+  currentVerticalTween = gsap.to(scroller, {
+    scrollTop: targetVerticalY,
+    duration: duration,
+    ease: 'power3.out',
+    overwrite: 'auto',
+    onUpdate: () => {
+      updateMenuButtonColor();
+    },
+    onComplete: () => {
+      currentVerticalTween = null;
+      if (targetVerticalY <= 5) {
+        scroller.scrollTop = 0;
+        activeScroller = null;
+      }
+      updateMenuButtonColor();
+      if (onDone) onDone();
+    }
+  });
+}
+
 function initDualAxisScroll() {
-  const sections = Array.from(document.querySelectorAll('.section'));
   const moreButtons = document.querySelectorAll('.more-btn');
   const backTopButtons = document.querySelectorAll('.back-top-btn');
-
-  // GSAP 기반 관성 부드러운 수직 스크롤러
-  function smoothVerticalScrollTo(scroller, targetY, duration = 0.65, onDone = null) {
-    const maxScroll = window.innerHeight;
-    targetVerticalY = Math.max(0, Math.min(maxScroll, targetY));
-
-    if (currentVerticalTween) {
-      currentVerticalTween.kill();
-    }
-
-    currentVerticalTween = gsap.to(scroller, {
-      scrollTop: targetVerticalY,
-      duration: duration,
-      ease: 'power3.out',
-      overwrite: 'auto',
-      onUpdate: () => {
-        updateMenuButtonColor();
-      },
-      onComplete: () => {
-        currentVerticalTween = null;
-        if (targetVerticalY <= 5) {
-          scroller.scrollTop = 0;
-          activeScroller = null; // 가로 스크롤로 복귀
-        }
-        updateMenuButtonColor();
-        if (onDone) onDone();
-      }
-    });
-  }
 
   // 'More' 버튼 클릭: 해당 섹션 100vh 아래로 부드럽게 스크롤
   moreButtons.forEach((btn) => {
@@ -395,11 +398,11 @@ function initDualAxisScroll() {
       window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
 
       targetVerticalY = window.innerHeight;
-      smoothVerticalScrollTo(scroller, window.innerHeight, 0.85);
+      smoothVerticalScrollTo(scroller, window.innerHeight, 0.75);
     });
   });
 
-  // 'Top' 버튼 클릭: 해당 섹션 최상단(메인 슬라이드)으로 부드럽게 복귀
+  // 'Top' 버튼 클릭: 최상단으로 복귀
   backTopButtons.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -411,52 +414,121 @@ function initDualAxisScroll() {
       if (!scroller) return;
 
       targetVerticalY = 0;
-      smoothVerticalScrollTo(scroller, 0, 0.75);
+      smoothVerticalScrollTo(scroller, 0, 0.65, () => {
+        activeScroller = null;
+      });
     });
   });
 
-  // 현재 화면 중심에 위치한 섹션의 수직 스크롤러 감지
-  function getCurrentVisibleSectionScroller() {
-    const probeX = window.innerWidth / 2;
-    const probeY = window.innerHeight / 2;
-    const under = document.elementFromPoint(probeX, probeY);
-    if (!under) return null;
-    const sec = under.closest('.section');
-    return sec ? sec.querySelector('.section-vertical-scroller') : null;
-  }
+  /* ---------- MOBILE TOUCH CONTROLLER (1:1 Finger Tracking & Anti-Jump) ---------- */
+  let touchStartY = 0;
+  let touchStartX = 0;
+  let startScrollTop = 0;
+  let isTouching = false;
+  let isVerticalGesture = false;
 
-  // 휠(Wheel) 이벤트: 부드러운 상하 관성 스크롤 및 가로 모드 자동 전환
+  window.addEventListener(
+    'touchstart',
+    (e) => {
+      if (isMenuOpen || !activeScroller) return;
+
+      const touch = e.touches[0];
+      touchStartY = touch.clientY;
+      touchStartX = touch.clientX;
+      startScrollTop = activeScroller.scrollTop;
+      isTouching = true;
+      isVerticalGesture = false;
+
+      // 손가락이 닿는 즉시 진행 중인 스무스 애니메이션 중지하여 1:1 직접 제어권 획득
+      if (currentVerticalTween) {
+        currentVerticalTween.kill();
+        currentVerticalTween = null;
+      }
+    },
+    { passive: true }
+  );
+
+  window.addEventListener(
+    'touchmove',
+    (e) => {
+      if (isMenuOpen || !activeScroller || !isTouching) return;
+
+      const touch = e.touches[0];
+      const deltaY = touchStartY - touch.clientY; // 드래그 위로 -> deltaY > 0; 드래그 아래로 -> deltaY < 0
+      const deltaX = touchStartX - touch.clientX;
+
+      if (!isVerticalGesture) {
+        if (Math.abs(deltaY) > 6 && Math.abs(deltaY) > Math.abs(deltaX)) {
+          isVerticalGesture = true;
+        } else if (Math.abs(deltaX) > 12) {
+          isTouching = false;
+          return;
+        }
+      }
+
+      if (isVerticalGesture) {
+        if (e.cancelable) e.preventDefault();
+
+        // 1:1 손가락 정밀 추적 (조금만 올려도 순간이동하지 않고 정확히 손가락 위치에 고정)
+        let newScrollTop = startScrollTop + deltaY;
+
+        // 경계선 저항 처리
+        if (newScrollTop < 0) {
+          newScrollTop = newScrollTop * 0.25;
+        } else if (newScrollTop > window.innerHeight) {
+          newScrollTop = window.innerHeight + (newScrollTop - window.innerHeight) * 0.25;
+        }
+
+        activeScroller.scrollTop = newScrollTop;
+        targetVerticalY = newScrollTop;
+        updateMenuButtonColor();
+      }
+    },
+    { passive: false }
+  );
+
+  window.addEventListener(
+    'touchend',
+    () => {
+      if (isMenuOpen || !activeScroller || !isTouching) return;
+      isTouching = false;
+
+      if (!isVerticalGesture) return;
+      isVerticalGesture = false;
+
+      const currentY = activeScroller.scrollTop;
+      // 화면 높이의 약 35% 이상 아래로 끌어내렸을 때만 상단 메인 슬라이드로 복귀
+      const threshold = window.innerHeight * 0.65;
+
+      if (currentY < threshold) {
+        // 의도적인 상단 복귀 제스처
+        smoothVerticalScrollTo(activeScroller, 0, 0.45, () => {
+          activeScroller = null;
+        });
+      } else {
+        // 살짝 건드렸거나 가벼운 스크롤은 서브섹션 위치로 부드럽게 유지
+        smoothVerticalScrollTo(activeScroller, window.innerHeight, 0.35);
+      }
+    },
+    { passive: true }
+  );
+
+  /* ---------- DESKTOP WHEEL EVENT CONTROLLER ---------- */
   window.addEventListener(
     'wheel',
     (e) => {
-      if (isMenuOpen) return;
+      if (isMenuOpen || isTouching) return;
 
-      // 1. 활성화된 세로 서브섹션에 있거나 아래로 스크롤 진행 중인 경우
       if (activeScroller && (activeScroller.scrollTop > 5 || targetVerticalY > 5)) {
         e.preventDefault();
 
-        // 휠 델타 누적 (부드러운 스크롤 감속)
-        targetVerticalY += e.deltaY;
+        targetVerticalY += e.deltaY * 0.85;
         targetVerticalY = Math.max(0, Math.min(window.innerHeight, targetVerticalY));
 
-        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.55);
+        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.5);
         return;
       }
 
-      // 2. 현재 보이는 섹션의 스크롤러가 내려가 있는 경우
-      const currentScroller = getCurrentVisibleSectionScroller();
-      if (currentScroller && (currentScroller.scrollTop > 5 || (activeScroller === currentScroller && targetVerticalY > 5))) {
-        e.preventDefault();
-        activeScroller = currentScroller;
-
-        targetVerticalY += e.deltaY;
-        targetVerticalY = Math.max(0, Math.min(window.innerHeight, targetVerticalY));
-
-        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.55);
-        return;
-      }
-
-      // 3. 최상단인 경우: 정상 가로 스크롤 수행
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         window.scrollBy({ top: e.deltaX });
       }
@@ -464,7 +536,7 @@ function initDualAxisScroll() {
     { passive: false }
   );
 
-  // 키보드 상/하 및 좌/우 방향키 지원
+  /* ---------- KEYBOARD CONTROLLER ---------- */
   window.addEventListener('keydown', (e) => {
     if (isMenuOpen) return;
 
@@ -472,11 +544,11 @@ function initDualAxisScroll() {
       if (e.key === 'ArrowDown' || e.key === 'PageDown') {
         e.preventDefault();
         targetVerticalY += window.innerHeight * 0.45;
-        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.6);
+        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.55);
       } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault();
         targetVerticalY -= window.innerHeight * 0.45;
-        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.6);
+        smoothVerticalScrollTo(activeScroller, targetVerticalY, 0.55);
       }
       return;
     }
