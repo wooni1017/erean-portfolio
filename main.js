@@ -306,19 +306,19 @@ function initSection2CharRiseEditorial() {
   });
 
   const r1p1 = document.querySelector('#splitRow1 > .text-phrase:first-child');
-  const box1 = document.querySelector('#splitRow1 .inline-solid-box');
+  const logoItem = document.querySelector('#splitRow1 .inline-logo-item');
   const r1p2 = document.querySelector('#splitRow1 > .text-phrase:last-child');
 
   const r2p1 = document.querySelector('#splitRow2 > .text-phrase:first-child');
-  const box2 = document.querySelector('#splitRow2 .inline-solid-box');
+  const emojiItem = document.querySelector('#splitRow2 .inline-emoji-item');
   const r2dot = document.querySelector('#splitRow2 .dot-phrase');
 
   const allRiseTargets = [
     ...(r1p1 ? r1p1.querySelectorAll('.split-char') : []),
-    box1,
+    logoItem,
     ...(r1p2 ? r1p2.querySelectorAll('.split-char') : []),
     ...(r2p1 ? r2p1.querySelectorAll('.split-char') : []),
-    box2,
+    emojiItem,
     ...(r2dot ? r2dot.querySelectorAll('.split-char') : [])
   ].filter(Boolean);
 

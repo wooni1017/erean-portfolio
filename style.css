@@ -483,37 +483,58 @@ html, body {
   width: 0.28em;
 }
 
-/* Solid Black Boxes: 이미지 2의 사진/그래픽 사각형 비율과 베이스라인 정렬 */
-.inline-box-mask {
+/* ================= SECTION 2: INLINE LOGO & EMOJI (글자 높이 및 베이스라인 일치) ================= */
+.inline-logo-mask {
   overflow: hidden;
   display: inline-flex;
-  border-radius: clamp(3px, 0.4vw, 6px);
-  height: 0.74em;
+  align-items: baseline;
   vertical-align: baseline;
-  transform: translateY(0.04em);
-  flex-shrink: 0;
+  line-height: 1.1;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+  margin: 0 clamp(10px, 1.4vw, 26px);
 }
 
-#splitRow1 .inline-box-mask {
-  width: clamp(95px, 1.45em, 320px);
-  margin: 0 clamp(8px, 1.4vw, 24px);
-}
-
-#splitRow2 .inline-box-mask {
-  width: clamp(155px, 2.5em, 540px);
-  margin: 0 clamp(8px, 1.4vw, 24px);
-  margin-right: clamp(4px, 0.6vw, 10px);
-}
-
-.inline-solid-box {
-  width: 100%;
-  height: 100%;
-  background-color: #000000;
-  border-radius: inherit;
-  display: block;
+.inline-logo-item {
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
   will-change: transform, opacity;
   transform: none;
   opacity: 1;
+}
+
+.inline-logo-svg {
+  display: inline-block;
+  height: 0.74em; /* 대문자(I, G) 높이에 완벽 일치 */
+  width: 0.74em;
+  vertical-align: baseline;
+  transform: translateY(0.02em);
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.inline-emoji-mask {
+  overflow: hidden;
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  line-height: 1.1;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+  margin: 0 clamp(8px, 1.2vw, 20px);
+  margin-right: clamp(4px, 0.6vw, 10px);
+}
+
+.inline-emoji-item {
+  display: inline-block;
+  font-size: 0.82em; /* 글자(대문자 D) 높이에 완벽 일치 */
+  line-height: 1;
+  vertical-align: baseline;
+  transform: translateY(-0.02em);
+  will-change: transform, opacity;
+  opacity: 1;
+  user-select: none;
 }
 
 .dot-phrase {
