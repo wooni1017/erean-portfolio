@@ -502,9 +502,9 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 0.76em; /* 대문자(I, G, D) 높이와 정확히 일치 */
-  min-width: 1.62em; /* 가로로 긴 2:1 타원형 알약 캡슐 비율 */
-  padding: 0 0.46em;
+  height: 0.85em; /* 진짜 조금만 더 도톰하고 뚱뚱한 볼륨감(0.76em -> 0.85em) */
+  min-width: 1.76em; /* 텍스트 리듬에 딱 맞춘 안정적인 타원 캡슐 */
+  padding: 0 0.50em;
   background-color: #ffffff;
   border: 1.5px solid rgba(0, 0, 0, 0.22);
   border-radius: 9999px;
@@ -515,15 +515,15 @@ html, body {
 
 .inline-logo-svg {
   display: block;
-  height: 0.52em;
-  width: 0.52em;
+  height: 0.58em;
+  width: 0.58em;
   fill: currentColor;
   flex-shrink: 0;
 }
 
 .inline-emoji-char {
   display: inline-block;
-  font-size: 0.56em;
+  font-size: 0.62em;
   line-height: 1;
   vertical-align: middle;
   user-select: none;
