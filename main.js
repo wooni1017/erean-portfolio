@@ -343,11 +343,18 @@ function initSection2CharRiseEditorial() {
   initMacDragAndDropSequence();
 }
 
-/* ================= 6. SECTION 2: MAC CURSOR DRAG & DROP SEQUENCE =================
- * 맥 마우스 포인터가 로고를 끌고 올라와서 Pill 1에 놓고,
- * 위로 올라가서 👾 이모지를 끌고 내려와 Pill 2에 놓는 정교한 인터랙티브 모션.
- * 순간적인 크기 변화 (잡을 때 확대/누름, 놓을 때 스쿼시 & 스트레치 탄성 바운스),
- * 끌고 이동할 때 마우스에 매달려 흔들리는 펜듈럼 댕글링(Wobble) 물리 구현.
+/* ================= 6. SECTION 2: MAC CURSOR DRAG & DROP & USER INTERACTIVE PLAY =================
+ * 1. 초기 1회 자동 실행:
+ *    섹션 진입 시 가상 맥 커서가 로고와 👾 이모지를 끌고 와 각각 Pill 1, Pill 2에 안착.
+ *    이후 섹션을 완전히 벗어나기 전까지는 다시 반복 실행되지 않음 (repeat: 0).
+ * 2. 사용자 직접 드래그 & 드롭:
+ *    사용자가 마우스/터치로 필 안의 아이템(로고, 이모지)을 밖으로 자유롭게 끌어다 놓을 수 있음.
+ *    드래그 시 실시간 속도 비례 틸트(Wobble), 스케일업(1.3x), 드롭 섀도우 활성화.
+ *    필 안쪽에 놓으면 탄성 스냅백으로 쏙 안착.
+ * 3. 밖으로 꺼내 놓았을 때의 자동 복구 가상 맥 커서 루틴 (Rescue):
+ *    사용자가 바깥에 내려놓으면 0.65초 뒤 가상 맥 마우스가 등장하여
+ *    해당 위치로 이동 ➔ 찝어서 ➔ 원래 필 안으로 흔들림 물리와 함께 끌고 들어와 안착 ➔ 퇴장.
+ *    사용자가 다시 건드리면 가상 커서는 즉시 양보하고 사라짐.
  */
 function initMacDragAndDropSequence() {
   const container = document.querySelector('.split-editorial-container');
@@ -369,11 +376,31 @@ function initMacDragAndDropSequence() {
     };
   }
 
-  let macTimeline = null;
+  let macIntroTimeline = null;
+  let activeRescueTimeline = null;
+  let activeRescueTimer = null;
+  let hasInitialPlayed = false;
+  let isUserInteracting = false;
+  const outsideItems = new Set(); // tracks 'logo', 'emoji'
 
-  function buildTimeline() {
-    if (macTimeline) {
-      macTimeline.kill();
+  function cancelAnyMacAction() {
+    if (activeRescueTimer) {
+      clearTimeout(activeRescueTimer);
+      activeRescueTimer = null;
+    }
+    if (activeRescueTimeline) {
+      activeRescueTimeline.kill();
+      activeRescueTimeline = null;
+    }
+    if (macIntroTimeline && macIntroTimeline.isActive()) {
+      macIntroTimeline.pause();
+    }
+    gsap.to(cursor, { opacity: 0, duration: 0.15, overwrite: 'auto' });
+  }
+
+  function buildIntroTimeline() {
+    if (macIntroTimeline) {
+      macIntroTimeline.kill();
     }
 
     const p1 = getCenter(pill1);
@@ -398,14 +425,18 @@ function initMacDragAndDropSequence() {
     const emojiOffsetX = emojiGrabX - p2.x;
     const emojiOffsetY = emojiGrabY - p2.y;
 
-    macTimeline = gsap.timeline({
-      repeat: -1,
-      repeatDelay: 1.8,
-      paused: false,
+    // repeat: 0 => 한 번만 실행하고 대기!
+    macIntroTimeline = gsap.timeline({
+      repeat: 0,
+      paused: true,
+      onComplete: () => {
+        outsideItems.delete('logo');
+        outsideItems.delete('emoji');
+      }
     });
 
     // 0. Setup initial states
-    macTimeline
+    macIntroTimeline
       .set(cursor, { x: logoGrabX - 80, y: logoGrabY + 120, opacity: 0, scale: 1, rotation: 0 })
       .set(dragLogo, { x: logoOffsetX, y: logoOffsetY, scale: 0.95, rotation: -6, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.12))' })
       .set(dragEmoji, { x: emojiOffsetX, y: emojiOffsetY, scale: 0.95, rotation: 8, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.12))' })
@@ -427,7 +458,6 @@ function initMacDragAndDropSequence() {
       // 3. Cursor drags Logo UP into Pill 1 (with dynamic dangling wobble!)
       .to(cursor, { x: p1.x, y: p1.y, duration: 0.85, ease: 'power2.inOut' }, '+=0.04')
       .to(dragLogo, { x: 0, y: 0, duration: 0.85, ease: 'power2.inOut' }, '<')
-      // Pendulum dangling oscillations during upward transit:
       .to(dragLogo, { rotation: -18, duration: 0.17, ease: 'sine.inOut' }, '<+=0.05')
       .to(dragLogo, { rotation: 14, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
       .to(dragLogo, { rotation: -9, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
@@ -472,7 +502,6 @@ function initMacDragAndDropSequence() {
       // 7. Cursor drags Emoji DOWN into Pill 2 (with dynamic dangling wobble!)
       .to(cursor, { x: p2.x, y: p2.y, duration: 0.9, ease: 'power2.inOut' }, '+=0.04')
       .to(dragEmoji, { x: 0, y: 0, duration: 0.9, ease: 'power2.inOut' }, '<')
-      // Pendulum dangling oscillations during downward transit:
       .to(dragEmoji, { rotation: 20, duration: 0.18, ease: 'sine.inOut' }, '<+=0.05')
       .to(dragEmoji, { rotation: -16, duration: 0.18, ease: 'sine.inOut' }, '>-0.02')
       .to(dragEmoji, { rotation: 10, duration: 0.18, ease: 'sine.inOut' }, '>-0.02')
@@ -505,19 +534,288 @@ function initMacDragAndDropSequence() {
       .to(cursor, { x: '+=100', y: '+=110', opacity: 0, duration: 0.65, ease: 'power2.in' }, '+=0.35');
   }
 
-  buildTimeline();
+  buildIntroTimeline();
 
-  // ScrollTrigger: Pause when off-screen, play/resume when in Section 2
+  // ---------------- Mac Rescue System (단일 커서 연속 이동 회수 루틴) ----------------
+  function scheduleRescue() {
+    if (activeRescueTimer) clearTimeout(activeRescueTimer);
+    if (isUserInteracting) return;
+
+    activeRescueTimer = setTimeout(() => {
+      runContinuousRescue();
+    }, 550);
+  }
+
+  function runContinuousRescue() {
+    if (isUserInteracting) return;
+
+    // 회수 대상 필터 (실제 필 중심에서 45px 이상 벗어난 아이템들)
+    const itemsToRescue = Array.from(outsideItems).filter((itemType) => {
+      const item = itemType === 'logo' ? dragLogo : dragEmoji;
+      const dist = Math.hypot(gsap.getProperty(item, 'x') || 0, gsap.getProperty(item, 'y') || 0);
+      return dist >= 45;
+    });
+
+    if (itemsToRescue.length === 0) return;
+
+    if (activeRescueTimeline) {
+      activeRescueTimeline.kill();
+      activeRescueTimeline = null;
+    }
+
+    const currentCursorOpacity = gsap.getProperty(cursor, 'opacity') || 0;
+    const isCursorOnScreen = currentCursorOpacity > 0.3;
+
+    activeRescueTimeline = gsap.timeline({
+      onComplete: () => {
+        activeRescueTimeline = null;
+        if (outsideItems.size > 0 && !isUserInteracting) {
+          runContinuousRescue();
+        }
+      }
+    });
+
+    itemsToRescue.forEach((itemType, idx) => {
+      const item = itemType === 'logo' ? dragLogo : dragEmoji;
+      const pill = itemType === 'logo' ? pill1 : pill2;
+      const isFirst = idx === 0;
+      const isLast = idx === itemsToRescue.length - 1;
+
+      const itemR = item.getBoundingClientRect();
+      const contR = container.getBoundingClientRect();
+      const pillCenter = getCenter(pill);
+
+      const itemContX = itemR.left - contR.left + itemR.width / 2;
+      const itemContY = itemR.top - contR.top + itemR.height / 2;
+
+      // 1. 단일 마우스 커서의 끊김 없는 자연스러운 이동 (fade out 없이 그대로 이동!)
+      if (isFirst) {
+        if (!isCursorOnScreen) {
+          const startX = itemContX + (itemType === 'logo' ? -70 : 70);
+          const startY = itemContY + (itemType === 'logo' ? 90 : -90);
+          activeRescueTimeline
+            .set(cursor, { x: startX, y: startY, opacity: 0, scale: 1, rotation: 0 })
+            .to(cursor, { opacity: 1, x: itemContX, y: itemContY, duration: 0.55, ease: 'power2.out' });
+        } else {
+          // 이미 화면에 커서가 있으면 이전 위치에서 바로 대상 아이템으로 슥 이동
+          activeRescueTimeline
+            .to(cursor, { x: itemContX, y: itemContY, duration: 0.7, ease: 'power3.inOut' });
+        }
+      } else {
+        // 다음 아이템으로 이동: 페이드 아웃 절대 없이, 방금 넣은 필에서 다음 아이템 위치로 단일 포인터가 활공 이동!
+        activeRescueTimeline
+          .to(cursor, { x: itemContX, y: itemContY, duration: 0.75, ease: 'power3.inOut' }, '+=0.2');
+      }
+
+      // 2. 픽업 클릭 & 팝 피드백
+      activeRescueTimeline
+        .to(cursor, { scale: 0.78, duration: 0.09, yoyo: true, repeat: 1, ease: 'power2.inOut' })
+        .to(item, {
+          scale: 1.35,
+          rotation: itemType === 'logo' ? 14 : -14,
+          filter: 'drop-shadow(0 16px 24px rgba(0,0,0,0.28))',
+          duration: 0.14,
+          ease: 'back.out(2.2)'
+        }, '<')
+
+        // 3. 필 안으로 흔들리며 끌고 들어가기 (펜듈럼 댕글링 물리)
+        .to(cursor, { x: pillCenter.x, y: pillCenter.y, duration: 0.85, ease: 'power2.inOut' }, '+=0.04')
+        .to(item, { x: 0, y: 0, duration: 0.85, ease: 'power2.inOut' }, '<')
+        .to(item, { rotation: itemType === 'logo' ? -18 : 18, duration: 0.17, ease: 'sine.inOut' }, '<+=0.05')
+        .to(item, { rotation: itemType === 'logo' ? 14 : -14, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
+        .to(item, { rotation: itemType === 'logo' ? -8 : 8, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
+        .to(item, { rotation: 0, duration: 0.17, ease: 'power2.out' }, '>-0.02')
+
+        // 4. 필 안 안착 & 스쿼시 스트레치
+        .to(cursor, { scale: 1, duration: 0.1 }, '-=0.1')
+        .to(pill, { scale: 1.1, borderColor: '#000000', duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' }, '<')
+        .to(item, {
+          scaleY: 0.7,
+          scaleX: 1.38,
+          filter: 'drop-shadow(0 0px 0px rgba(0,0,0,0))',
+          duration: 0.1,
+          ease: 'power3.in'
+        }, '<')
+        .to(item, {
+          scaleY: 1.14,
+          scaleX: 0.9,
+          duration: 0.16,
+          ease: 'power2.out'
+        })
+        .to(item, {
+          scale: 1,
+          duration: 0.38,
+          ease: 'elastic.out(1.2, 0.4)'
+        })
+        .add(() => {
+          outsideItems.delete(itemType);
+        });
+
+      // 5. 모든 외부 아이템을 다 집어넣었을 때 비로소 커서가 부드럽게 퇴장!
+      if (isLast) {
+        activeRescueTimeline
+          .to(cursor, { x: '+=80', y: '+=80', opacity: 0, duration: 0.55, ease: 'power2.in' }, '+=0.3');
+      }
+    });
+  }
+
+  // ---------------- 사용자 직접 드래그 & 드롭 핸들러 ----------------
+  function setupUserDraggable(item, pill, itemType) {
+    let startPointerX = 0;
+    let startPointerY = 0;
+    let startItemX = 0;
+    let startItemY = 0;
+    let isCurrentItemDragging = false;
+    let prevPointerX = 0;
+
+    function onPointerMove(e) {
+      if (!isCurrentItemDragging) return;
+      e.preventDefault();
+
+      const dx = e.clientX - startPointerX;
+      const dy = e.clientY - startPointerY;
+      const newX = startItemX + dx;
+      const newY = startItemY + dy;
+
+      // 이동 속도에 맞춘 생동감 있는 회전 틸트
+      const velocityX = e.clientX - prevPointerX;
+      prevPointerX = e.clientX;
+      const targetRot = Math.max(-24, Math.min(24, velocityX * 1.6));
+
+      gsap.to(item, {
+        x: newX,
+        y: newY,
+        rotation: targetRot,
+        duration: 0.05,
+        ease: 'power1.out',
+        overwrite: 'auto'
+      });
+    }
+
+    function onDragEnd(e) {
+      if (!isCurrentItemDragging) return;
+      isCurrentItemDragging = false;
+      isUserInteracting = false;
+      item.classList.remove('is-dragging');
+
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onDragEnd);
+      window.removeEventListener('pointercancel', onDragEnd);
+
+      try {
+        if (e && e.pointerId) item.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+
+      const curX = gsap.getProperty(item, 'x') || 0;
+      const curY = gsap.getProperty(item, 'y') || 0;
+      const distFromPill = Math.hypot(curX, curY);
+
+      if (distFromPill < 60) {
+        // 필 안쪽에 놓음 ➔ 쏙 안착
+        outsideItems.delete(itemType);
+        gsap.to(item, {
+          x: 0,
+          y: 0,
+          rotation: 0,
+          scale: 1,
+          filter: 'drop-shadow(0 0px 0px rgba(0,0,0,0))',
+          duration: 0.45,
+          ease: 'elastic.out(1.2, 0.45)',
+          overwrite: 'auto'
+        });
+        gsap.to(pill, {
+          scale: 1.08,
+          duration: 0.12,
+          yoyo: true,
+          repeat: 1,
+          ease: 'power2.out'
+        });
+      } else {
+        // 필 바깥에 놓음 ➔ 드롭 지점에 머무르고, 맥 마우스가 와서 회수하도록 예약
+        outsideItems.add(itemType);
+        gsap.to(item, {
+          rotation: 0,
+          scale: 1.05,
+          filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.18))',
+          duration: 0.25,
+          ease: 'back.out(1.6)',
+          overwrite: 'auto'
+        });
+
+        scheduleRescue();
+      }
+    }
+
+    function onPointerDown(e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+
+      e.preventDefault();
+      cancelAnyMacAction();
+      isUserInteracting = true;
+      isCurrentItemDragging = true;
+
+      startPointerX = e.clientX;
+      startPointerY = e.clientY;
+      prevPointerX = e.clientX;
+      startItemX = gsap.getProperty(item, 'x') || 0;
+      startItemY = gsap.getProperty(item, 'y') || 0;
+
+      try {
+        item.setPointerCapture(e.pointerId);
+      } catch (_) {}
+      item.classList.add('is-dragging');
+
+      window.addEventListener('pointermove', onPointerMove, { passive: false });
+      window.addEventListener('pointerup', onDragEnd);
+      window.addEventListener('pointercancel', onDragEnd);
+
+      gsap.to(item, {
+        scale: 1.32,
+        filter: 'drop-shadow(0 16px 26px rgba(0,0,0,0.28))',
+        duration: 0.16,
+        ease: 'back.out(2.2)',
+        overwrite: 'auto'
+      });
+    }
+
+    item.addEventListener('pointerdown', onPointerDown);
+    pill.addEventListener('pointerdown', (e) => {
+      // If clicking pill but not item, start drag
+      if (!isCurrentItemDragging) onPointerDown(e);
+    });
+  }
+
+  setupUserDraggable(dragLogo, pill1, 'logo');
+  setupUserDraggable(dragEmoji, pill2, 'emoji');
+
+  // ScrollTrigger: 섹션 진입 시 최초 1회만 실행!
+  // 섹션을 완전히 벗어나면 상태 리셋하여 재진입 시 다시 실행 가능
   if (horizontalTween) {
     ScrollTrigger.create({
       trigger: sectionDesigner,
       containerAnimation: horizontalTween,
       start: 'left 80%',
       end: 'right 20%',
-      onEnter: () => macTimeline && macTimeline.play(),
-      onLeave: () => macTimeline && macTimeline.pause(),
-      onEnterBack: () => macTimeline && macTimeline.play(),
-      onLeaveBack: () => macTimeline && macTimeline.pause(),
+      onEnter: () => {
+        if (!hasInitialPlayed) {
+          hasInitialPlayed = true;
+          macIntroTimeline && macIntroTimeline.play(0);
+        }
+      },
+      onLeave: () => {
+        hasInitialPlayed = false;
+        cancelAnyMacAction();
+      },
+      onEnterBack: () => {
+        if (!hasInitialPlayed) {
+          hasInitialPlayed = true;
+          macIntroTimeline && macIntroTimeline.play(0);
+        }
+      },
+      onLeaveBack: () => {
+        hasInitialPlayed = false;
+        cancelAnyMacAction();
+      },
     });
   }
 
@@ -526,7 +824,11 @@ function initMacDragAndDropSequence() {
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      buildTimeline();
+      buildIntroTimeline();
+      if (hasInitialPlayed) {
+        if (!outsideItems.has('logo')) gsap.set(dragLogo, { x: 0, y: 0, scale: 1, rotation: 0 });
+        if (!outsideItems.has('emoji')) gsap.set(dragEmoji, { x: 0, y: 0, scale: 1, rotation: 0 });
+      }
     }, 200);
   });
 }

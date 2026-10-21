@@ -540,6 +540,23 @@ html, body {
   justify-content: center;
   will-change: transform, filter, opacity;
   transform-origin: center center;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  position: relative;
+  z-index: 10;
+}
+
+.drag-item-inner:active,
+.drag-item-inner.is-dragging {
+  cursor: grabbing !important;
+  z-index: 60 !important;
+}
+
+.drag-item-inner * {
+  pointer-events: none;
+  user-select: none;
 }
 
 .inline-logo-svg {
