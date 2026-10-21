@@ -483,57 +483,49 @@ html, body {
   width: 0.28em;
 }
 
-/* ================= SECTION 2: INLINE LOGO & EMOJI (글자 높이 및 베이스라인 일치) ================= */
-.inline-logo-mask {
+/* ================= SECTION 2: INLINE CAPSULE PILL (LOGO & EMOJI) ================= */
+.inline-pill-mask {
   overflow: hidden;
   display: inline-flex;
-  align-items: baseline;
-  vertical-align: baseline;
-  line-height: 1.1;
-  padding-bottom: 0.06em;
-  margin-bottom: -0.06em;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
   margin: 0 clamp(10px, 1.4vw, 26px);
+  transform: translateY(-0.04em); /* 텍스트 높이 및 베이스라인 완벽 일치 */
 }
 
-.inline-logo-item {
+#splitRow2 .inline-pill-mask {
+  margin-right: clamp(4px, 0.6vw, 12px);
+}
+
+.inline-pill-capsule {
   display: inline-flex;
-  align-items: baseline;
-  vertical-align: baseline;
+  align-items: center;
+  justify-content: center;
+  height: 0.76em; /* 대문자(I, G, D) 높이와 정확히 일치 */
+  min-width: 1.62em; /* 가로로 긴 2:1 타원형 알약 캡슐 비율 */
+  padding: 0 0.46em;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+  border-radius: 9999px;
+  box-sizing: border-box;
   will-change: transform, opacity;
-  transform: none;
-  opacity: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .inline-logo-svg {
-  display: inline-block;
-  height: 0.74em; /* 대문자(I, G) 높이에 완벽 일치 */
-  width: 0.74em;
-  vertical-align: baseline;
-  transform: translateY(0.02em);
+  display: block;
+  height: 0.52em;
+  width: 0.52em;
   fill: currentColor;
   flex-shrink: 0;
 }
 
-.inline-emoji-mask {
-  overflow: hidden;
-  display: inline-flex;
-  align-items: baseline;
-  vertical-align: baseline;
-  line-height: 1.1;
-  padding-bottom: 0.06em;
-  margin-bottom: -0.06em;
-  margin: 0 clamp(8px, 1.2vw, 20px);
-  margin-right: clamp(4px, 0.6vw, 10px);
-}
-
-.inline-emoji-item {
+.inline-emoji-char {
   display: inline-block;
-  font-size: 0.82em; /* 글자(대문자 D) 높이에 완벽 일치 */
+  font-size: 0.56em;
   line-height: 1;
-  vertical-align: baseline;
-  transform: translateY(-0.02em);
-  will-change: transform, opacity;
-  opacity: 1;
+  vertical-align: middle;
   user-select: none;
 }
 

@@ -306,11 +306,11 @@ function initSection2CharRiseEditorial() {
   });
 
   const r1p1 = document.querySelector('#splitRow1 > .text-phrase:first-child');
-  const logoItem = document.querySelector('#splitRow1 .inline-logo-item');
+  const logoItem = document.querySelector('#splitRow1 .inline-pill-capsule');
   const r1p2 = document.querySelector('#splitRow1 > .text-phrase:last-child');
 
   const r2p1 = document.querySelector('#splitRow2 > .text-phrase:first-child');
-  const emojiItem = document.querySelector('#splitRow2 .inline-emoji-item');
+  const emojiItem = document.querySelector('#splitRow2 .inline-pill-capsule');
   const r2dot = document.querySelector('#splitRow2 .dot-phrase');
 
   const allRiseTargets = [
