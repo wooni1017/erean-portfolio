@@ -47,7 +47,6 @@ function updateMenuButtonColor() {
 
 function initHorizontalScroll() {
   const getScrollLength = () => track.scrollWidth - window.innerWidth;
-  const isTouch = ScrollTrigger.isTouch;
 
   horizontalTween = gsap.to(track, {
     x: () => -getScrollLength(),
@@ -57,7 +56,7 @@ function initHorizontalScroll() {
       start: 'top top',
       end: () => `+=${getScrollLength()}`,
       pin: true,
-      scrub: isTouch ? 0.15 : 0.8, // Snappy on mobile touch, buttery smooth on desktop
+      scrub: 1, // 부드럽고 묵직한 GSAP 특유의 버터리 스크롤 관성 (PC/모바일 전체 적용)
       invalidateOnRefresh: true,
       onUpdate: () => {
         updateMenuButtonColor();

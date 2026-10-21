@@ -36,6 +36,7 @@ html, body {
   width: 100%;
   overflow-x: hidden;
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
   background-color: var(--color-black);
@@ -246,7 +247,6 @@ html, body {
   position: relative;
   overflow: hidden;
   padding: 0;
-  contain: paint;
 }
 
 .section-dark {
