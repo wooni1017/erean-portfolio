@@ -443,6 +443,7 @@ html, body {
   width: fit-content;
   max-width: 92vw;
   margin: 0 auto;
+  position: relative; /* Anchor for absolute Mac virtual cursor */
 }
 
 .split-row {
@@ -483,15 +484,35 @@ html, body {
   width: 0.28em;
 }
 
+/* ================= SECTION 2: MAC OS VIRTUAL CURSOR ================= */
+.mac-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-origin: 4px 2px;
+  margin-left: -4px;
+  margin-top: -2px;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+}
+
+.mac-cursor-svg {
+  display: block;
+  overflow: visible;
+}
+
 /* ================= SECTION 2: INLINE CAPSULE PILL (LOGO & EMOJI) ================= */
 .inline-pill-mask {
-  overflow: hidden;
+  overflow: visible !important; /* 드래그 및 흔들림 스윙이 캡슐 밖으로 자연스럽게 표현 */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: center;
   margin: 0 clamp(10px, 1.4vw, 26px);
-  transform: translateY(-0.04em); /* 텍스트 높이 및 베이스라인 완벽 일치 */
+  transform: translateY(-0.04em);
 }
 
 #splitRow2 .inline-pill-mask {
@@ -511,6 +532,14 @@ html, body {
   box-sizing: border-box;
   will-change: transform, opacity;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.drag-item-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, filter, opacity;
+  transform-origin: center center;
 }
 
 .inline-logo-svg {

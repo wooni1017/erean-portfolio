@@ -306,19 +306,19 @@ function initSection2CharRiseEditorial() {
   });
 
   const r1p1 = document.querySelector('#splitRow1 > .text-phrase:first-child');
-  const logoItem = document.querySelector('#splitRow1 .inline-pill-capsule');
+  const pill1 = document.getElementById('pill1');
   const r1p2 = document.querySelector('#splitRow1 > .text-phrase:last-child');
 
   const r2p1 = document.querySelector('#splitRow2 > .text-phrase:first-child');
-  const emojiItem = document.querySelector('#splitRow2 .inline-pill-capsule');
+  const pill2 = document.getElementById('pill2');
   const r2dot = document.querySelector('#splitRow2 .dot-phrase');
 
   const allRiseTargets = [
     ...(r1p1 ? r1p1.querySelectorAll('.split-char') : []),
-    logoItem,
+    pill1,
     ...(r1p2 ? r1p2.querySelectorAll('.split-char') : []),
     ...(r2p1 ? r2p1.querySelectorAll('.split-char') : []),
-    emojiItem,
+    pill2,
     ...(r2dot ? r2dot.querySelectorAll('.split-char') : [])
   ].filter(Boolean);
 
@@ -338,6 +338,197 @@ function initSection2CharRiseEditorial() {
       }
     });
   }
+
+  // Initialize the Mac Drag & Drop Sequence
+  initMacDragAndDropSequence();
+}
+
+/* ================= 6. SECTION 2: MAC CURSOR DRAG & DROP SEQUENCE =================
+ * 맥 마우스 포인터가 로고를 끌고 올라와서 Pill 1에 놓고,
+ * 위로 올라가서 👾 이모지를 끌고 내려와 Pill 2에 놓는 정교한 인터랙티브 모션.
+ * 순간적인 크기 변화 (잡을 때 확대/누름, 놓을 때 스쿼시 & 스트레치 탄성 바운스),
+ * 끌고 이동할 때 마우스에 매달려 흔들리는 펜듈럼 댕글링(Wobble) 물리 구현.
+ */
+function initMacDragAndDropSequence() {
+  const container = document.querySelector('.split-editorial-container');
+  const cursor = document.getElementById('macCursor');
+  const pill1 = document.getElementById('pill1');
+  const pill2 = document.getElementById('pill2');
+  const dragLogo = document.getElementById('dragLogoInner');
+  const dragEmoji = document.getElementById('dragEmojiInner');
+  const sectionDesigner = document.querySelector('.section-designer');
+
+  if (!container || !cursor || !pill1 || !pill2 || !dragLogo || !dragEmoji) return;
+
+  function getCenter(el) {
+    const elR = el.getBoundingClientRect();
+    const contR = container.getBoundingClientRect();
+    return {
+      x: elR.left - contR.left + elR.width / 2,
+      y: elR.top - contR.top + elR.height / 2,
+    };
+  }
+
+  let macTimeline = null;
+
+  function buildTimeline() {
+    if (macTimeline) {
+      macTimeline.kill();
+    }
+
+    const p1 = getCenter(pill1);
+    const p2 = getCenter(pill2);
+
+    const row1 = document.getElementById('splitRow1');
+    const row2 = document.getElementById('splitRow2');
+    const contR = container.getBoundingClientRect();
+    const r1R = row1 ? row1.getBoundingClientRect() : null;
+    const r2R = row2 ? row2.getBoundingClientRect() : null;
+
+    // Starting positions:
+    // Logo starts cleanly below Row 2 (to be dragged UP into Pill 1)
+    const logoGrabY = r2R ? (r2R.bottom - contR.top + 36) : (p1.y + 260);
+    const logoGrabX = p1.x - 20;
+    const logoOffsetX = logoGrabX - p1.x;
+    const logoOffsetY = logoGrabY - p1.y;
+
+    // Emoji starts cleanly above Row 1 (to be dragged DOWN into Pill 2)
+    const emojiGrabY = r1R ? (r1R.top - contR.top - 40) : (p2.y - 200);
+    const emojiGrabX = p2.x + 36;
+    const emojiOffsetX = emojiGrabX - p2.x;
+    const emojiOffsetY = emojiGrabY - p2.y;
+
+    macTimeline = gsap.timeline({
+      repeat: -1,
+      repeatDelay: 1.8,
+      paused: false,
+    });
+
+    // 0. Setup initial states
+    macTimeline
+      .set(cursor, { x: logoGrabX - 80, y: logoGrabY + 120, opacity: 0, scale: 1, rotation: 0 })
+      .set(dragLogo, { x: logoOffsetX, y: logoOffsetY, scale: 0.95, rotation: -6, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.12))' })
+      .set(dragEmoji, { x: emojiOffsetX, y: emojiOffsetY, scale: 0.95, rotation: 8, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.12))' })
+      .set([pill1, pill2], { scale: 1, borderColor: 'rgba(0, 0, 0, 0.22)' })
+
+      // 1. Mac cursor glides in towards Logo
+      .to(cursor, { opacity: 1, x: logoGrabX, y: logoGrabY, duration: 0.6, ease: 'power2.out' })
+
+      // 2. Cursor clicks on Logo (Grab pop & click scale)
+      .to(cursor, { scale: 0.78, duration: 0.09, yoyo: true, repeat: 1, ease: 'power2.inOut' })
+      .to(dragLogo, {
+        scale: 1.35,
+        rotation: 14,
+        filter: 'drop-shadow(0 16px 24px rgba(0,0,0,0.28))',
+        duration: 0.14,
+        ease: 'back.out(2.2)'
+      }, '<')
+
+      // 3. Cursor drags Logo UP into Pill 1 (with dynamic dangling wobble!)
+      .to(cursor, { x: p1.x, y: p1.y, duration: 0.85, ease: 'power2.inOut' }, '+=0.04')
+      .to(dragLogo, { x: 0, y: 0, duration: 0.85, ease: 'power2.inOut' }, '<')
+      // Pendulum dangling oscillations during upward transit:
+      .to(dragLogo, { rotation: -18, duration: 0.17, ease: 'sine.inOut' }, '<+=0.05')
+      .to(dragLogo, { rotation: 14, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
+      .to(dragLogo, { rotation: -9, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
+      .to(dragLogo, { rotation: 5, duration: 0.17, ease: 'sine.inOut' }, '>-0.02')
+      .to(dragLogo, { rotation: 0, duration: 0.17, ease: 'power2.out' }, '>-0.02')
+
+      // 4. Cursor drops Logo into Pill 1 (Release & squash & stretch settling!)
+      .to(cursor, { scale: 1, duration: 0.1 }, '-=0.1')
+      .to(pill1, { scale: 1.1, borderColor: '#000000', duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' }, '<')
+      .to(dragLogo, {
+        scaleY: 0.7,
+        scaleX: 1.38,
+        filter: 'drop-shadow(0 0px 0px rgba(0,0,0,0))',
+        duration: 0.1,
+        ease: 'power3.in'
+      }, '<')
+      .to(dragLogo, {
+        scaleY: 1.14,
+        scaleX: 0.9,
+        duration: 0.16,
+        ease: 'power2.out'
+      })
+      .to(dragLogo, {
+        scale: 1,
+        duration: 0.38,
+        ease: 'elastic.out(1.2, 0.4)'
+      })
+
+      // 5. Cursor glides UP towards Emoji floating above Pill 2
+      .to(cursor, { x: emojiGrabX, y: emojiGrabY, duration: 0.75, ease: 'power3.inOut' }, '+=0.2')
+
+      // 6. Cursor clicks on Emoji (Grab pop & click scale)
+      .to(cursor, { scale: 0.78, duration: 0.09, yoyo: true, repeat: 1, ease: 'power2.inOut' })
+      .to(dragEmoji, {
+        scale: 1.38,
+        rotation: -16,
+        filter: 'drop-shadow(0 16px 24px rgba(0,0,0,0.28))',
+        duration: 0.14,
+        ease: 'back.out(2.4)'
+      }, '<')
+
+      // 7. Cursor drags Emoji DOWN into Pill 2 (with dynamic dangling wobble!)
+      .to(cursor, { x: p2.x, y: p2.y, duration: 0.9, ease: 'power2.inOut' }, '+=0.04')
+      .to(dragEmoji, { x: 0, y: 0, duration: 0.9, ease: 'power2.inOut' }, '<')
+      // Pendulum dangling oscillations during downward transit:
+      .to(dragEmoji, { rotation: 20, duration: 0.18, ease: 'sine.inOut' }, '<+=0.05')
+      .to(dragEmoji, { rotation: -16, duration: 0.18, ease: 'sine.inOut' }, '>-0.02')
+      .to(dragEmoji, { rotation: 10, duration: 0.18, ease: 'sine.inOut' }, '>-0.02')
+      .to(dragEmoji, { rotation: -5, duration: 0.18, ease: 'sine.inOut' }, '>-0.02')
+      .to(dragEmoji, { rotation: 0, duration: 0.18, ease: 'power2.out' }, '>-0.02')
+
+      // 8. Cursor drops Emoji into Pill 2 (Release & squash & stretch settling!)
+      .to(cursor, { scale: 1, duration: 0.1 }, '-=0.1')
+      .to(pill2, { scale: 1.1, borderColor: '#000000', duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' }, '<')
+      .to(dragEmoji, {
+        scaleY: 0.68,
+        scaleX: 1.4,
+        filter: 'drop-shadow(0 0px 0px rgba(0,0,0,0))',
+        duration: 0.1,
+        ease: 'power3.in'
+      }, '<')
+      .to(dragEmoji, {
+        scaleY: 1.15,
+        scaleX: 0.9,
+        duration: 0.16,
+        ease: 'power2.out'
+      })
+      .to(dragEmoji, {
+        scale: 1,
+        duration: 0.38,
+        ease: 'elastic.out(1.2, 0.4)'
+      })
+
+      // 9. Cursor smoothly exits
+      .to(cursor, { x: '+=100', y: '+=110', opacity: 0, duration: 0.65, ease: 'power2.in' }, '+=0.35');
+  }
+
+  buildTimeline();
+
+  // ScrollTrigger: Pause when off-screen, play/resume when in Section 2
+  if (horizontalTween) {
+    ScrollTrigger.create({
+      trigger: sectionDesigner,
+      containerAnimation: horizontalTween,
+      start: 'left 80%',
+      end: 'right 20%',
+      onEnter: () => macTimeline && macTimeline.play(),
+      onLeave: () => macTimeline && macTimeline.pause(),
+      onEnterBack: () => macTimeline && macTimeline.play(),
+      onLeaveBack: () => macTimeline && macTimeline.pause(),
+    });
+  }
+
+  // Dynamic recalculation on window resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      buildTimeline();
+    }, 200);
+  });
 }
 
 /* ================= 6. DUAL-AXIS SCROLL & ROBUST MOBILE TOUCH HANDLER ================= */
